@@ -1,0 +1,33 @@
+{
+    "versions": [
+        {
+            "id": 15842,
+            "sref": "refs/heads/master",
+            "slean": "621d16eea8a195e362fa0eeafbf59b6937cac88f",
+            "sleancloud": "e1babeaed98f023e25e710fbdf93957b0c9a7b1a",
+            "sdescription": "Adjust order processor set location (#7468)",
+            "sname": "master",
+            "bpublic": 1,
+            "itimestamp": "2023-09-18 15:22:59",
+            "benchmark_basic": 256735.20227111428,
+            "benchmark_equity_400_minute": 755382.3930846223,
+            "benchmark_equity_1_second": 260556.85224839402,
+            "benchmark_cs_indicator": 171631.0144927536,
+            "benchmark_cs_history": 188555.10344827586,
+            "benchmark_cs_schedule_events": 217926.00401606422,
+            "benchmark_py_basic": 193237.1260683761,
+            "benchmark_py_equity_400_minute": 663866.6533386644,
+            "benchmark_py_equity_1_second": 197292.33887312523,
+            "benchmark_py_indicator": 28888.415080527087,
+            "benchmark_py_history": 76331.62966066191,
+            "benchmark_py_schedule_events": 174061.18684843625,
+            "benchmark_py_universe_coarsefine": 206941.8245614035,
+            "benchmark_cs_universe_coarsefine": 219598.09456598447,
+            "benchmark_py_universe_stateful": 129086.56280428433,
+            "benchmark_cs_universe_stateful": 160021.07371794872,
+            "benchmark_py_universe_stateless": 177991.8449197861,
+            "benchmark_cs_universe_stateless": 235642.30088495577
+        }
+    ],
+    "success": true
+}

@@ -1,0 +1,26 @@
+{
+    "environments": [
+        {
+            "id": 1,
+            "name": "Foundation Default",
+            "path": null,
+            "description": "Default core foundation for LEAN baking in the most of the popular libraries for quantitative analysis.",
+            "public": 1
+        },
+        {
+            "id": 3,
+            "name": "Foundation Pomegranate",
+            "path": "/Foundation-Pomegranate",
+            "description": "Build of the LEAN Core foundation focused on Pomegranate, an AI package incompatible with other packages.",
+            "public": 1
+        },
+        {
+            "id": 4,
+            "name": "Hudson Thames",
+            "path": "/Hudson-Thames",
+            "description": "Packages and build environment for the Hudson &amp; Thames MlFinLab, ArbitrageLab, and PortfolioLab. An API token is required.",
+            "public": 1
+        }
+    ],
+    "success": true
+}
