@@ -37,11 +37,11 @@ def market_order(symbol, volume, order_type, deviation=20, magic=261200):
     
     # Calculate stop loss and take profit levels based on price and pips
     if order_type == 'buy':
-        sl_price = price_dict['buy'] - (20 * mt5.symbol_info(symbol).point)
-        tp_price = price_dict['buy'] + (50 * mt5.symbol_info(symbol).point)
+        sl_price = price_dict['buy'] - (200 * mt5.symbol_info(symbol).point)
+        tp_price = price_dict['buy'] + (500 * mt5.symbol_info(symbol).point)
     elif order_type == 'sell':
-        sl_price = price_dict['sell'] + (20 * mt5.symbol_info(symbol).point)
-        tp_price = price_dict['sell'] - (50 * mt5.symbol_info(symbol).point)
+        sl_price = price_dict['sell'] + (200 * mt5.symbol_info(symbol).point)
+        tp_price = price_dict['sell'] - (500 * mt5.symbol_info(symbol).point)
     else:
         raise ValueError("Invalid order type.")
     
@@ -94,14 +94,24 @@ def main():
         fast_ma = get_sma(data,  20)
         slow_ma = get_sma(data, 120)
 
+        prev_index = None  # Variable to store the previous index
+        prev_fast_ma = None  # Variable to store the previous value of fast MA
+
         for index, row in data.iterrows():
-            if fast_ma.loc[index] > slow_ma.loc[index]:
-                if mt5.positions_total() == 0:
-                    market_order(symbol, volume, 'buy')
+            # Check if there is a previous index and if fast MA is greater than slow MA
+            if prev_index is not None and fast_ma.loc[index] > slow_ma.loc[index]:
+                # Check if previous fast MA was less than or equal to previous slow MA
+                if prev_fast_ma <= slow_ma.loc[prev_index]:
+                    if mt5.positions_total() == 0:
+                        market_order(symbol, volume, 'buy')
             elif fast_ma.loc[index] < slow_ma.loc[index]:
                 if mt5.positions_total() == 0:
                     market_order(symbol, volume, 'sell')
-        
+
+            # Update previous index and fast MA value for next iteration
+            prev_index = index
+            prev_fast_ma = fast_ma.loc[index]
+            
         time.sleep(900)  # Check every 15 minute
 
 if __name__ == "__main__":
