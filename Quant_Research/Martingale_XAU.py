@@ -95,31 +95,21 @@ def main():
         fast_ma = get_sma(data,  20)
         slow_ma = get_sma(data, 120)
 
-        prev_index = None  # Variable to store the previous index
-        prev_fast_ma = None  # Variable to store the previous value of fast MA
-        prev_slow_ma = None  # Variable to store the previous value of slow MA
+        in_position = False
+        
         
         for index, row in data.iterrows():
-            # Check if there is a previous index
-            if prev_index is not None:
-                # Check if fast MA is less than slow MA and previous fast MA was above or equal to previous slow MA
-                if fast_ma.loc[index] < slow_ma.loc[index] and prev_fast_ma >= prev_slow_ma:
-                    if mt5.positions_total() == 0:
-                        market_order(symbol, volume, 'sell')
-                        print('Entered Short Position')
-        
-            # Update previous values for next iteration
-            prev_index = index
-            prev_fast_ma = fast_ma.loc[index]
-            prev_slow_ma = slow_ma.loc[index]
-        
-            # Check for entering a long position
-            if fast_ma.loc[index] > slow_ma.loc[index]:
-                if prev_index is not None and prev_fast_ma <= prev_slow_ma:
-                    if mt5.positions_total() == 0:
-                        market_order(symbol, volume, 'buy')
-                        print('Entered Long Position')
-
+            if mt5.positions_total() == 0:
+                in_position = False
+            elif not  in_position and fast_ma.loc[index] > slow_ma.loc[index] and fast_ma.loc[index - 1] <= slow_ma.loc[index - 1]:
+                market_order(symbol, volume, 'buy')
+                print('Entered Short Position')
+                in_position = True
+            elif not in_position and fast_ma.loc[index] < slow_ma.loc[index] and fast_ma.loc[index - 1] >= slow_ma.loc[index - 1]:
+                market_order(symbol, volume, 'sell')
+                print('Entered short position')
+                in_position = True
+            
             
         time.sleep(900)  # Check every 15 minute
 
