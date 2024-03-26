@@ -78,7 +78,8 @@ def main():
         print(datetime.now(),
               '| Login: ', account_info.login,
               '| Balance: ', account_info.balance,
-              '| Equity: ' , account_info.equity)
+              '| Equity: ' , account_info.equity,
+              '| Profit: ', account_info.profit)
         
         current_time = int(time.time())
         start_time = datetime(2022, 8, 1)
@@ -96,21 +97,29 @@ def main():
 
         prev_index = None  # Variable to store the previous index
         prev_fast_ma = None  # Variable to store the previous value of fast MA
-
+        prev_slow_ma = None  # Variable to store the previous value of slow MA
+        
         for index, row in data.iterrows():
-            # Check if there is a previous index and if fast MA is greater than slow MA
-            if prev_index is not None and fast_ma.loc[index] > slow_ma.loc[index]:
-                # Check if previous fast MA was less than or equal to previous slow MA
-                if prev_fast_ma <= slow_ma.loc[prev_index]:
+            # Check if there is a previous index
+            if prev_index is not None:
+                # Check if fast MA is less than slow MA and previous fast MA was above or equal to previous slow MA
+                if fast_ma.loc[index] < slow_ma.loc[index] and prev_fast_ma >= prev_slow_ma:
                     if mt5.positions_total() == 0:
-                        market_order(symbol, volume, 'buy')
-            elif fast_ma.loc[index] < slow_ma.loc[index]:
-                if mt5.positions_total() == 0:
-                    market_order(symbol, volume, 'sell')
-
-            # Update previous index and fast MA value for next iteration
+                        market_order(symbol, volume, 'sell')
+                        print('Entered Short Position')
+        
+            # Update previous values for next iteration
             prev_index = index
             prev_fast_ma = fast_ma.loc[index]
+            prev_slow_ma = slow_ma.loc[index]
+        
+            # Check for entering a long position
+            if fast_ma.loc[index] > slow_ma.loc[index]:
+                if prev_index is not None and prev_fast_ma <= prev_slow_ma:
+                    if mt5.positions_total() == 0:
+                        market_order(symbol, volume, 'buy')
+                        print('Entered Long Position')
+
             
         time.sleep(900)  # Check every 15 minute
 
