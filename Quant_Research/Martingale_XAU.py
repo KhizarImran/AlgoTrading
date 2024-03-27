@@ -1,7 +1,7 @@
 import MetaTrader5 as mt5
 import pandas as pd
 import time
-from datetime import datetime
+from datetime import datetime, timedelta
 
 def connect_to_mt5():
     if not mt5.initialize():
@@ -18,13 +18,8 @@ def get_data(symbol, timeframe, start_date, end_time):
     return df
 
 def get_sma(data, period):
-    calc_sma = data['close'].tail(period)
-    sma = calc_sma.mean()
+    sma = data['close'].rolling(period).mean()
     return sma
-
-def get_prev_sma(data, period):
-    prev_sma = data['close'].rolling(period).mean()
-    return prev_sma
 
 def market_order(symbol, volume, order_type, deviation=20, magic=261200):
     order_type_dict = {
@@ -79,8 +74,8 @@ def main():
               '| Equity: ' , account_info.equity,
               '| Profit: ', account_info.profit)
         
-        current_time = datetime.now()
-        start_time = datetime(2024, 1, 1)
+        current_time = datetime.utcfromtimestamp(mt5.symbol_info(symbol).time)
+        start_time = current_time - timedelta(days=7)
         end_time = current_time
 
         data = get_data(symbol, timeframe, start_time, end_time)
@@ -89,19 +84,17 @@ def main():
             time.sleep(60)
             continue
         
-        fast_ma = get_sma(data,  20)
-        slow_ma = get_sma(data, 120)
+        fast_ma = get_sma(data,  20).iloc[-1]
+        slow_ma = get_sma(data, 120).iloc[-1]
         
-
-
         # Check if there are open positions
         positions_total = mt5.positions_total()
         
         # Keep track of current position
         in_position = positions_total > 0
         
-        prev_fast_ma = get_prev_sma(data, 20).iloc[-1]
-        prev_slow_ma = get_prev_sma(data, 120).iloc[-1]
+        prev_fast_ma = get_sma(data, 20).iloc[-2]
+        prev_slow_ma = get_sma(data, 120).iloc[-2]
 
 
         # Check conditions and place trades
@@ -115,7 +108,15 @@ def main():
                 market_order(symbol, volume, 'sell')
                 print('Sell signal detected')
                 in_position = True
-            
+        output1 = (fast_ma > slow_ma) and (prev_fast_ma <= prev_slow_ma)
+        output2 = (fast_ma < slow_ma) and (prev_fast_ma >= prev_slow_ma)
+        
+        print(f'Fastma :{fast_ma}')
+        print(f'Slowma :{slow_ma}')
+        print(f'Prev Fastma :{prev_fast_ma}')
+        print(f'Prev Slowma :{prev_slow_ma}')
+        print(f'Buy Signal :{output1}')
+        print(f'Sell Signal :{output2}')  
         
         time.sleep(900)  # Check every 15 minutes
 
