@@ -60,7 +60,7 @@ def market_order(symbol, volume, order_type, deviation=20, magic=261200):
 
 def main():
     symbol = 'XAUUSD'
-    timeframe = mt5.TIMEFRAME_M15
+    timeframe = mt5.TIMEFRAME_M5
     volume = 0.1
     
     if not connect_to_mt5():
@@ -75,8 +75,11 @@ def main():
               '| Profit: ', account_info.profit)
         
         current_time = datetime.utcfromtimestamp(mt5.symbol_info(symbol).time)
+        print('Current time :',current_time)
         start_time = current_time - timedelta(days=7)
-        end_time = current_time
+        print('Start time :', start_time)
+        end_time = current_time + timedelta(hours=1)
+        print('end_time: ', end_time)
 
         data = get_data(symbol, timeframe, start_time, end_time)
         if len(data) < 120:  
@@ -118,7 +121,7 @@ def main():
         print(f'Buy Signal :{output1}')
         print(f'Sell Signal :{output2}')  
         
-        time.sleep(900)  # Check every 15 minutes
+        time.sleep(300)  # Check every 5 minutes
 
 if __name__ == "__main__":
     main()
