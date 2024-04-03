@@ -61,11 +61,13 @@ def market_order(symbol, volume, order_type, deviation=20, magic=261200):
 def main():
     symbol = 'XAUUSD'
     timeframe = mt5.TIMEFRAME_M5
-    volume = 0.1
+    init_volume = 0.1
+    my_volume = init_volume
+    prev_last_profit = 0  # Initialize previous profit
     
     if not connect_to_mt5():
         return
-    
+
     while True:
         account_info = mt5.account_info()
         print(datetime.now(),
@@ -90,6 +92,18 @@ def main():
         fast_ma = get_sma(data,  20).iloc[-1]
         slow_ma = get_sma(data, 120).iloc[-1]
         
+        # Looking at previous closed trade
+        history_orders = mt5.history_deals_get(datetime(2024,1,1), datetime.now(), symbol="XAUUSD")
+        last_profit = history_orders[-1].profit
+        
+        # Adjust volume only if last profit has changed
+        if last_profit != prev_last_profit:
+            if last_profit < 0:
+                my_volume = round(my_volume * 1.3, 2)
+            elif last_profit >= 0:  # Adjust this condition
+                my_volume = init_volume
+            prev_last_profit = last_profit
+        
         # Check if there are open positions
         positions_total = mt5.positions_total()
         
@@ -98,17 +112,17 @@ def main():
         
         prev_fast_ma = get_sma(data, 20).iloc[-2]
         prev_slow_ma = get_sma(data, 120).iloc[-2]
-
+        
 
         # Check conditions and place trades
         if not in_position: 
             if (fast_ma > slow_ma) and (prev_fast_ma <= prev_slow_ma):
-                market_order(symbol, volume, 'buy')
+                market_order(symbol, my_volume, 'buy')
                 print('Buy signal detected')
                 in_position = True
 
             elif (fast_ma < slow_ma) and (prev_fast_ma >= prev_slow_ma):
-                market_order(symbol, volume, 'sell')
+                market_order(symbol, my_volume, 'sell')
                 print('Sell signal detected')
                 in_position = True
         output1 = (fast_ma > slow_ma) and (prev_fast_ma <= prev_slow_ma)
