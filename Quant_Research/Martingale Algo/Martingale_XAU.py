@@ -64,10 +64,13 @@ def main():
     init_volume = 0.1
     my_volume = init_volume
     prev_last_profit = 0  # Initialize previous profit
+    account = 51333879
     
-    if not connect_to_mt5():
+    # Login to MetaTrader 5
+    if not mt5.login(account, password="r2gDKeQz",server="ICMarketsSC-Demo"):
+        print("Failed to log in to MetaTrader 5.")
         return
-
+    
     while True:
         account_info = mt5.account_info()
         print(datetime.now(),

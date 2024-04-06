@@ -99,11 +99,11 @@ def main():
         in_position = positions_total > 0
         
         if not in_position:
-             if rsi <= 40 and data['Close'] >= lower_bb:
+             if rsi <= 40 and data['Close'].iloc[-1] >= lower_bb:
                  market_order(symbol, volume, 'buy')
                  in_position = True
             
-        output = rsi <= 40 and data['Close'] >= lower_bb
+        output = rsi <= 40 and data['Close'].iloc[-1] >= lower_bb
         
         if output == True:
             print('*****Algo entered buy*****')
