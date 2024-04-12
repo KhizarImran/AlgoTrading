@@ -72,6 +72,20 @@ def main():
         return
     
     while True:
+        
+        # Get current UTC time
+        current_time_utc = datetime.utcnow()
+        
+        # Convert UTC time to UK time
+        current_time_uk = current_time_utc + timedelta(hours=1)  # UTC+1 for UK time
+        
+        # Check if current time is within trading hours (7am - 9pm UK time)
+        if current_time_uk.hour < 7 or current_time_uk.hour >= 21:
+            print("Outside trading hours. Waiting...")
+            time.sleep(300)  # Check every 5 minutes
+            continue
+        
+        
         account_info = mt5.account_info()
         print(datetime.now(),
               '| Login: ', account_info.login,
