@@ -64,7 +64,7 @@ def market_order(symbol, volume, order_type, deviation=20, magic=200101):
     return order_result
 
 def main():
-    symbol = 'US500'
+    symbol = 'SP500USD'
     timeframe = mt5.TIMEFRAME_M5
     volume = 0.01
     
@@ -113,11 +113,11 @@ def main():
         in_position = positions_total > 0
         
         if not in_position:
-             if rsi <= 40 and data['Close'].iloc[-1] >= lower_bb:
+             if rsi <= 40 and data['close'].iloc[-1] >= lower_bb:
                  market_order(symbol, volume, 'buy')
                  in_position = True
             
-        output = rsi <= 40 and data['Close'].iloc[-1] >= lower_bb
+        output = rsi <= 40 and data['close'].iloc[-1] >= lower_bb
         
         if output == True:
             print('*****Algo entered buy*****')

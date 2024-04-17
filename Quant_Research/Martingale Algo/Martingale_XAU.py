@@ -62,14 +62,14 @@ def main():
     symbol = 'XAUUSD'
     timeframe = mt5.TIMEFRAME_M5
     init_volume = 0.1
-    my_volume = init_volume
+    my_volume = 0.1
     prev_last_profit = 0  # Initialize previous profit
-    account = 51333879
+    #account = 51333879
     
     # Login to MetaTrader 5
-    if not mt5.login(account, password="r2gDKeQz",server="ICMarketsSC-Demo"):
-        print("Failed to log in to MetaTrader 5.")
-        return
+    #if not mt5.login(account, password="r2gDKeQz",server="ICMarketsSC-Demo"):
+        #print("Failed to log in to MetaTrader 5.")
+        #return
     
     while True:
         account_info = mt5.account_info()
