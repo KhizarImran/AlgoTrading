@@ -107,13 +107,13 @@ def main():
         rsi = get_rsi(data, 14).iloc[-1]
         
         # Check if there are open positions
-        positions_total = mt5.positions_total()
+        positions_get = mt5.positions_get(symbol=symbol)
         
         # Keep track of current position
-        in_position = positions_total > 0
+        in_position = len(positions_get) > 0
         
         if not in_position:
-             if rsi <= 40 and data['close'].iloc[-1] >= lower_bb:
+             if rsi <= 40 and data['close'].iloc[-2] < lower_bb and data['close'].iloc[-1] >= lower_bb:
                  market_order(symbol, volume, 'buy')
                  in_position = True
             
