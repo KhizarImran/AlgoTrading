@@ -72,10 +72,20 @@ def market_order(symbol, volume, order_type, deviation=20, magic=261200):
     order_result = mt5.order_send(request)
     return order_result
 
+def check_trading_hours():
+    # Get current UTC time
+    current_time_utc = datetime.utcnow()
+    
+    # Convert UTC time to UK time
+    current_time_uk = current_time_utc + timedelta(hours=1)  # UTC+1 for UK time
+    
+    # Check if current time is within trading hours (7am - 9pm UK time)
+    return 7 <= current_time_uk.hour < 21
+
 def main():
     symbol = 'XAUUSD'
-    timeframe = mt5.TIMEFRAME_M5
-    init_volume = 0.15
+    timeframe = mt5.TIMEFRAME_M1
+    init_volume = 0.10
     my_volume = init_volume
     prev_last_profit = None  # Initialize previous profit
     #account = 701092
@@ -88,6 +98,11 @@ def main():
         #return
     
     while True:
+        if not check_trading_hours():
+            print("Outside trading hours. Waiting...")
+            time.sleep(300)  # Check every 5 minutes
+            continue
+        
         account_info = mt5.account_info()
         print(datetime.now(),
               '| Login: ', account_info.login,
@@ -161,7 +176,7 @@ def main():
         
         # print(f'last profit  :{last_profit}', f'prev last profit :{prev_last_profit}')  
         
-        time.sleep(300)  # Check every 5 minutes
+        time.sleep(60)  # Check every 5 minutes
 
 if __name__ == "__main__":
     main()
