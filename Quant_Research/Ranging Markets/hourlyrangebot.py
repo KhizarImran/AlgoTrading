@@ -19,21 +19,21 @@ def get_data(symbol, timeframe, start_date, end_time):
     return df
 
 def get_lowerbb(data, window):
-    lowerbb = ta.volatility.bollinger_lband(data['close'], window = window)
+    lowerbb = ta.volatility.bollinger_lband(data['close'], window=window)
     return lowerbb
 
 def get_upperbb(data, window):
-    lowerbb = ta.volatility.bollinger_hband(data['close'], window = window)
-    return lowerbb
+    upperbb = ta.volatility.bollinger_hband(data['close'], window=window)
+    return upperbb
 
 def market_order(symbol, volume, order_type, deviation=20, magic=100922):
     order_type_dict = {
-        'buy'  : mt5.ORDER_TYPE_BUY,
-        'sell'  : mt5.ORDER_TYPE_SELL
+        'buy': mt5.ORDER_TYPE_BUY,
+        'sell': mt5.ORDER_TYPE_SELL
     }
     price_dict = {
-        'buy' : mt5.symbol_info_tick(symbol).ask,
-        'sell' : mt5.symbol_info_tick(symbol).bid
+        'buy': mt5.symbol_info_tick(symbol).ask,
+        'sell': mt5.symbol_info_tick(symbol).bid
     }
     
     if order_type == 'buy':
@@ -48,13 +48,13 @@ def market_order(symbol, volume, order_type, deviation=20, magic=100922):
     request = {
         "action": mt5.TRADE_ACTION_DEAL,
         "symbol": symbol,
-        "volume": volume,  # FLOAT
+        "volume": volume,
         "type": order_type_dict[order_type],
         "price": price_dict[order_type],
-        "sl": sl_price,  # FLOAT
-        "tp": tp_price,  # FLOAT
-        "deviation": deviation,  # INTEGER
-        "magic": magic,  # INTEGER
+        "sl": sl_price,
+        "tp": tp_price,
+        "deviation": deviation,
+        "magic": magic,
         "comment": "my_first_strat",
         "type_time": mt5.ORDER_TIME_GTC,
         "type_filling": mt5.ORDER_FILLING_IOC,
@@ -62,6 +62,33 @@ def market_order(symbol, volume, order_type, deviation=20, magic=100922):
     
     order_result = mt5.order_send(request)
     return order_result
+
+def close_position(position):
+    if position.type == mt5.ORDER_TYPE_BUY:
+        order_type = mt5.ORDER_TYPE_SELL
+        price = mt5.symbol_info_tick(position.symbol).bid
+    elif position.type == mt5.ORDER_TYPE_SELL:
+        order_type = mt5.ORDER_TYPE_BUY
+        price = mt5.symbol_info_tick(position.symbol).ask
+    else:
+        return None
+
+    request = {
+        "action": mt5.TRADE_ACTION_DEAL,
+        "symbol": position.symbol,
+        "volume": position.volume,
+        "type": order_type,
+        "position": position.ticket,
+        "price": price,
+        "deviation": 20,
+        "magic": position.magic,
+        "comment": "close_position",
+        "type_time": mt5.ORDER_TIME_GTC,
+        "type_filling": mt5.ORDER_FILLING_IOC,
+    }
+    
+    result = mt5.order_send(request)
+    return result
 
 def main():
     symbol = 'EURGBP'
@@ -72,25 +99,19 @@ def main():
         return
     
     while True:
-        
-        # Get current UTC time
         current_time_utc = datetime.utcnow()
+        current_time_uk = current_time_utc + timedelta(hours=1)
         
-        # Convert UTC time to UK time
-        current_time_uk = current_time_utc + timedelta(hours=1)  # UTC+1 for UK time
-        
-        # Check if current time is within trading hours (7am - 8am UK time)
         if current_time_uk.hour < 7 or current_time_uk.hour >= 8:
             print("Outside trading hours. Waiting...")
-            time.sleep(300)  # Check every 5 minutes
+            time.sleep(300)
             continue
-        
         
         account_info = mt5.account_info()
         print(datetime.now(),
               '| Login: ', account_info.login,
               '| Balance: ', account_info.balance,
-              '| Equity: ' , account_info.equity,
+              '| Equity: ', account_info.equity,
               '| Profit: ', account_info.profit)
         
         current_time = datetime.utcfromtimestamp(mt5.symbol_info(symbol).time)
@@ -106,33 +127,36 @@ def main():
         lower_bb = get_lowerbb(data, 20).iloc[-1]
         upper_bb = get_upperbb(data, 20).iloc[-1]
         
-        
-        # Check if there are open positions
         positions_get = mt5.positions_get(symbol=symbol)
-        
-        # Keep track of current position
         in_position = len(positions_get) > 0
+        position_type = None
+        
+        if in_position:
+            position = positions_get[0]
+            position_type = 'buy' if position.type == mt5.ORDER_TYPE_BUY else 'sell'
         
         if not in_position:
-            
-            # Trading logic for entering buys
             if data['close'].iloc[-2] < lower_bb and data['close'].iloc[-1] >= lower_bb:
-                 market_order(symbol, volume, 'buy')
-                 in_position = True
-                 print('*****Algo entered buy*****')   
-            
-            # Trading logic for entering shorts
+                market_order(symbol, volume, 'buy')
+                print('*****Algo entered buy*****')
             elif data['close'].iloc[-2] > upper_bb and data['close'].iloc[-1] <= upper_bb:
                 market_order(symbol, volume, 'sell')
-                in_position = True
                 print('*****Algo entered sell*****')
-                
+        else:
+            if position_type == 'buy' and data['close'].iloc[-2] > upper_bb and data['close'].iloc[-1] <= upper_bb:
+                close_position(position)
+                market_order(symbol, volume, 'sell')
+                print('*****Algo closed buy and entered sell*****')
+            elif position_type == 'sell' and data['close'].iloc[-2] < lower_bb and data['close'].iloc[-1] >= lower_bb:
+                close_position(position)
+                market_order(symbol, volume, 'buy')
+                print('*****Algo closed sell and entered buy*****')
         
         print('Symbol :', symbol)
         print(f'Lower_bb : {lower_bb}')
         print(f'Upper_bb : {upper_bb}')
         
-        time.sleep(60)  # Check every minute
+        time.sleep(60)
 
 if __name__ == "__main__":
     main()
