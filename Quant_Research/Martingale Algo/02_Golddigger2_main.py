@@ -76,24 +76,22 @@ def close_all_positions(symbol):
     
 
 def volume(symbol, current_volume):
-    # Check for closed positions
     if last_pnl(symbol) < 0:
-        calculated_volume = calculate_volume(False, current_volume)
-        print(f"Last closed trade was a loss. Doubling volume to {current_volume}")
-    if last_pnl(symbol) >= 0:
-        calculated_volume = calculate_volume(True, current_volume)
-        print(f"Last closed trade was a win. Resetting volume to {current_volume}")
-
-        
-    return calculated_volume
-
-
-def calculate_volume(is_loss, current_volume):
-    base_volume = 0.1
-    if not is_loss:
-        return current_volume * 2
+        new_volume = calculate_volume(False, current_volume)
+        print(f"Last closed trade was a loss. Doubling volume from {current_volume} to {new_volume}")
+    else:
+        new_volume = calculate_volume(True, current_volume)
+        print(f"Last closed trade was a win. Resetting volume from {current_volume} to {new_volume}")
     
-    return base_volume
+    return new_volume
+
+
+def calculate_volume(is_win, current_volume):
+    base_volume = 0.01
+    if is_win:
+        return base_volume
+    else:
+        return current_volume * 2
 
 def last_pnl(symbol):
     try:
@@ -124,7 +122,7 @@ def last_pnl(symbol):
             
 def main():
     symbol = 'XAUUSD'
-    base_volume = 0.1  # Starting with 0.01 lot
+    base_volume = 0.01  # Starting with 0.01 lot
     max_positions = 2
     
     if not connect_to_mt5():
@@ -137,6 +135,8 @@ def main():
     last_position_type = None
     
     previous_current_price = get_current_price(symbol)
+    
+    
     
     while True:
         try:

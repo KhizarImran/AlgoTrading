@@ -89,7 +89,7 @@ def volume(symbol, current_volume):
 
 
 def calculate_volume(is_loss, current_volume):
-    base_volume = 0.1
+    base_volume = 0.01
     if not is_loss:
         return current_volume * 2
     
@@ -124,7 +124,7 @@ def last_pnl(symbol):
             
 def main():
     symbol = 'XAUUSD'
-    base_volume = 0.1  # Starting with 0.01 lot
+    base_volume = 0.01  # Starting with 0.01 lot
     max_positions = 2
     
     if not connect_to_mt5():
